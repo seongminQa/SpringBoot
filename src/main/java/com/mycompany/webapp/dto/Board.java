@@ -14,9 +14,9 @@ public class Board {
 	   private String bwriter;
 	   private Date bdate;
 	   private int bhitcount;
-	   private MultipartFile battach;
+	   private MultipartFile battach;	// JSON으로 변환이 안됨.
 	   private String battachoname;
 	   private String battachsname;
 	   private String battachtype;
-	   private byte[] battachdata;
+	   private byte[] battachdata;	// JSON으로 변환할 필요가 없음. (파일 데이터 / binary data)
 }
