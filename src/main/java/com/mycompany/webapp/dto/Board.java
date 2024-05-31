@@ -19,4 +19,5 @@ public class Board {
 	   private String battachsname;
 	   private String battachtype;
 	   private byte[] battachdata;	// JSON으로 변환할 필요가 없음. (파일 데이터 / binary data)
+	   // 그림은 바이트 형식으로 다운로드 받아 브라우저 보여달라 누누히 말한 이유 : 속도 // 자세히 알아보자.
 }

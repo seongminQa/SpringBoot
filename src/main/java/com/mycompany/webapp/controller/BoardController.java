@@ -1,16 +1,20 @@
 package com.mycompany.webapp.controller;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,14 +69,107 @@ public class BoardController {
 		// DB에 저장
 		board.setBwriter("user");
 		boardService.insert(board);
-		// JSON으로 변환되지 않는 필드는 null 처리를 해야 한다.
+		// JSON으로 변환되지 않는 필드는 null 처리를 해야 한다. // 자동적으로 JSON으로 변환되어 값이 들어가기 때문에 해줌
 		board.setBattach(null);
 		board.setBdate(null);
 		
 		return board;	// {"bno":1, "btitle":"xxx", ... }
 	}
 	
+	/*@GetMapping("/read")	// http://localhost/read?bno=5 --> 쿼리 스트링 방식
+	public Board read(int bno) {
+
+	}*/
 	
+	@GetMapping("/read/{bno}")	// http://localhost/read/5 --> PathVariable 방식
+	public Board read(@PathVariable int bno) {
+		// bno에 해당하는 Board 객체 얻기
+		Board board = boardService.getBoard(bno);
+		// JSON으로 변환되지 않는 필드는 null처리
+		board.setBattachdata(null);
+		return board;
+	}
+	
+	@PutMapping("/update")
+	//public Board update(@RequestBody Board board) {
+	public Board update(Board board) {  // 첨부가 넘어왔을 경우 @RequestBody를 빼야한다.
+		
+		if(board.getBattach() != null && !board.getBattach().isEmpty()) {
+			// 첨부파일이 넘어왔을 경우 처리
+			MultipartFile mf = board.getBattach();
+			// 파일 이름을 설정
+			board.setBattachoname(mf.getOriginalFilename());
+			// 파일 종류를 설정
+			board.setBattachtype(mf.getContentType());
+			try {
+				// 파일 데이터를 설정
+				board.setBattachdata(mf.getBytes());
+			} catch (IOException e) {
+			}
+		}
+		
+		// board 수정하기
+		boardService.update(board);
+		//return board; // 완전한 데이터가 들어가지 않음. 수정할 내용만 들어가있다.
+		// 따라서 현재 해당 bno에 대한 board(수정한 보드)를 얻어 리턴한다.
+		// 수정된 내용의 Board 객체 얻기
+		board = boardService.getBoard(board.getBno());
+		// JSON으로 변환되지 않는 필드는 null처리
+		board.setBattach(null);
+		board.setBattachdata(null);
+		
+		return board;
+	}
+	
+	// 게시물 삭제
+	@DeleteMapping("/delete/{bno}")
+	public void delete(@PathVariable int bno) {
+		boardService.delete(bno);
+	}
+	
+	// 첨부 파일 다운로드
+	@GetMapping("/battach/{bno}")
+	public void download(@PathVariable int bno, HttpServletResponse response) {
+		// 해당 게시물 가져오기
+		Board board = boardService.getBoard(bno);
+		
+		// 크롬이나 사파리, 엣지도 포함해서
+		// 첨부 파일의 이름이 '한글'일 경우에는 문자가 깨질 수 있다.
+		// 파일 이름이 한글일 경우, 브라우저에서 한글 이름으로 다운로드 받기 위해 헤더에 추가할 내용
+		/*String fileName;
+		try {
+			// 첨부가 있는 경우에만 요청 할 수 있다. 없는 경우에는 이 요청 자체를 할 수가 없다.
+			fileName = new String(board.getBattachoname().getBytes("UTF-8"), "ISO-8859-1");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+		} catch (UnsupportedEncodingException e) {
+		}
+		
+		// 파일 타입을 헤더의 Content 부분에 추가
+		response.setContentType(board.getBattachtype());
+		// 응답 바디에 파일 데이터를 출력
+		try {
+			OutputStream os = response.getOutputStream();  // 하나의 실행동작이기 때문에 위의 try구문에 넣어도 가능할 것이다.
+			os.write(board.getBattachdata());
+			os.flush();
+			os.close();
+		} catch (IOException e) {
+		}*/
+		
+		try {
+			// 첨부가 있는 경우에만 요청 할 수 있다. 없는 경우에는 이 요청 자체를 할 수가 없다.
+			String fileName = new String(board.getBattachoname().getBytes("UTF-8"), "ISO-8859-1");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+			// 파일 타입을 헤더의 Content 부분에 추가
+			response.setContentType(board.getBattachtype());
+			OutputStream os = response.getOutputStream();
+			os.write(board.getBattachdata());
+			os.flush();
+			os.close();
+		} catch (IOException e) {
+			log.error(e.toString());
+		}
+		
+	}
 	
 	
 //	@GetMapping("/read/{bno}")  // http://localhost/board/read/3
