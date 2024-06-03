@@ -10,6 +10,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +36,7 @@ public class BoardController {
 	@Autowired
 	private BoardService boardService;
 	
+//	@Secured("ROLE_ADMIN") // 게시물을 로그인한 유저만 볼 수 있도록 어노테이션을 붙일 수 있다.
 	@GetMapping("/list")
 	public Map<String, Object> list(@RequestParam(defaultValue = "1") int pageNo) {
 		// 페이징 대상이 되는 전체 행 수 얻기
@@ -49,8 +53,10 @@ public class BoardController {
 		return map;	// {"boards": [ ... ], "pager": [ ... ] } 이런 형식으로 전달된다.
 	}
 	
+	// @Secured("ROLE_USER")  // 로그인한 유저만 게시글 생성 가능하도록 설정  // 몇몇 스프링 버전에 따라 버그가 일어날 수 있다는 얘기가 있다. 따라서 밑의 @PreAuthorize 를 추가한 것이다.
+	@PreAuthorize("hasAuthority('ROLE_USER')")  // @Secured와 비슷하게 사용할 수 있는 어노테이션 // 다양한 표현식까지 사용할 수 있다.
 	@PostMapping("/create")
-	public Board create(Board board) {
+	public Board create(Board board, Authentication authentication) {  // 로그인한 유저의 아이디를 얻기 위하여 Authentication 추가
 //		boardService.insert(board);
 		
 		if(board.getBattach() != null && !board.getBattach().isEmpty()) {
@@ -67,7 +73,8 @@ public class BoardController {
 			}
 		}
 		// DB에 저장
-		board.setBwriter("user");
+//		board.setBwriter("user");  // 처음 테스트를 위해 user라는 고정값을 줌
+		board.setBwriter(authentication.getName());  // authentication.getName() --> 로그인한 유저의 아이디 얻기 
 		boardService.insert(board);
 		// JSON으로 변환되지 않는 필드는 null 처리를 해야 한다. // 자동적으로 JSON으로 변환되어 값이 들어가기 때문에 해줌
 		board.setBattach(null);
@@ -90,6 +97,8 @@ public class BoardController {
 		return board;
 	}
 	
+//	@Secured("ROLE_USER")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	@PutMapping("/update")
 	//public Board update(@RequestBody Board board) {
 	public Board update(Board board) {  // 첨부가 넘어왔을 경우 @RequestBody를 빼야한다.
@@ -122,12 +131,16 @@ public class BoardController {
 	}
 	
 	// 게시물 삭제
+//	@Secured("ROLE_USER")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	@DeleteMapping("/delete/{bno}")
 	public void delete(@PathVariable int bno) {
 		boardService.delete(bno);
 	}
 	
 	// 첨부 파일 다운로드
+//	@Secured("ROLE_USER")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	@GetMapping("/battach/{bno}")
 	public void download(@PathVariable int bno, HttpServletResponse response) {
 		// 해당 게시물 가져오기

@@ -122,7 +122,7 @@ public class JwtProvider {
     }*/
    
    // 테스트 용도로 만든 main 메소드
-   /*public static final void main(String[] args) {
+   public static final void main(String[] args) {
       JwtProvider jwtProvider = new JwtProvider("com.mycompany.jsonwebtoken.kosacourse"); // 테스트용
 
       String accessToken = jwtProvider.createAccessToken("user", "ROLE_USER");
@@ -138,6 +138,6 @@ public class JwtProvider {
          String autority = jwtProvider.getAuthority(jws);
          log.info("autority: " + autority);
       }
-   }*/
+   }
    
 }
