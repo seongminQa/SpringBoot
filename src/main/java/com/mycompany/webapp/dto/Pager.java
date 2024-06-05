@@ -9,7 +9,7 @@ public class Pager {
    private int totalRows;      //전체 행수
    private int totalPageNo;   //전체 페이지 수
    private int totalGroupNo;   //전체 그룹 수
-   private int startPageNo;   //그룹의 시작 페이스 번호
+   private int startPageNo;   //그룹의 시작 페이지 번호
    private int endPageNo;      //그룹의 끝 페이지 번호
    private int[] pageArray;   //startPageNo ~ endPageNo 배열
    private int pageNo;         //현재 페이지 번호

@@ -36,7 +36,7 @@ public class BoardController {
 	@Autowired
 	private BoardService boardService;
 	
-//	@Secured("ROLE_ADMIN") // 게시물을 로그인한 유저만 볼 수 있도록 어노테이션을 붙일 수 있다.
+//	@Secured("ROLE_ADMIN") // 게시물을 로그인한 유저만 볼 수 있도록 어노테이션을 붙일 수 있다. // 스프링 2.7 버전과 3.x에서 동작하지 않는다.
 	@GetMapping("/list")
 	public Map<String, Object> list(@RequestParam(defaultValue = "1") int pageNo) {
 		// 페이징 대상이 되는 전체 행 수 얻기
@@ -88,11 +88,22 @@ public class BoardController {
 
 	}*/
 	
-	@GetMapping("/read/{bno}")	// http://localhost/read/5 --> PathVariable 방식
+	//@PreAuthorize("hasAuthority('ROLE_USER')")
+	/*@GetMapping("/read/{bno}")	// http://localhost/read/5 --> PathVariable 방식
 	public Board read(@PathVariable int bno) {
 		// bno에 해당하는 Board 객체 얻기
 		Board board = boardService.getBoard(bno);
 		// JSON으로 변환되지 않는 필드는 null처리
+		board.setBattachdata(null);
+		return board;
+	}*/
+	
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	@GetMapping("/read/{bno}")      //http://localhost/read/5
+	public Board read(@PathVariable int bno) {
+		//bno에 해당하는 Board 객체 얻기
+		Board board = boardService.getBoard(bno);
+		boardService.updateBhitcount(bno);
 		board.setBattachdata(null);
 		return board;
 	}

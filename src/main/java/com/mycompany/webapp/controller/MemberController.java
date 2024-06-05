@@ -34,12 +34,13 @@ public class MemberController {
 	
 	// GetMapping을 사용해도 상관없긴 하다.
 	@PostMapping("/login")
-	public Map<String, String> userLogin(String userId, String userPassword) {
+	public Map<String, String> userLogin(String mid, String mpassword) {
 		// 1. 사용자 상세 정보 얻기
-		AppUserDetails userDetails = (AppUserDetails) userDetailsService.loadUserByUsername(userId); // AppUserDetailsService에서 유저의 아이디가 없다면 예외를 발생시키도록 했음.
+		AppUserDetails userDetails = (AppUserDetails) userDetailsService.loadUserByUsername(mid); // AppUserDetailsService에서 유저의 아이디가 없다면 예외를 발생시키도록 했음.
 		// 2. 비밀번호 체크하기  // DB에서 '{알고리즘} 암호화된 비밀번호' 형식을 기억해보자.
 		PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-		boolean checkResult = passwordEncoder.matches(userPassword, userDetails.getMember().getMpassword()); // 첫번째 매개값은 입력받은 Password이고, 두번째 매개값은 DB에서 암호화된 Password값을 얻는다.
+		boolean checkResult = passwordEncoder.matches(
+				mpassword, userDetails.getMember().getMpassword()); // 첫번째 매개값은 입력받은 Password이고, 두번째 매개값은 DB에서 암호화된 Password값을 얻는다.
 		
 		// Spring 시큐리티 인증 처리
 		if(checkResult == true) {
@@ -54,10 +55,10 @@ public class MemberController {
 		
 		if(checkResult) {
 			// true일 경우 AccessToken을 생성한다.
-			String accessToken = jwtProvider.createAccessToken(userId, userDetails.getMember().getMrole());
+			String accessToken = jwtProvider.createAccessToken(mid, userDetails.getMember().getMrole());
 			// JSON 응답 구성
 			map.put("result", "success");
-			map.put("userId", userId);
+			map.put("mid", mid);
 			map.put("accessToken", accessToken);
 		} else {
 			map.put("result", "fail");

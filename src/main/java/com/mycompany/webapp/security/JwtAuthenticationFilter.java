@@ -56,11 +56,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // 이해 X 
 			// AccessToken 얻기
 		String accessToken = null;
 			
+		// 요청 헤더에서 AccessToken 얻기
 		HttpServletRequest httpServletRequest = (HttpServletRequest)request; // 이 request를 가지고 GetHeader라는 메소드를 사용할 수 없다. 따라서 타입변환을 해주는 것이다.
 		String headerValue = httpServletRequest.getHeader("Authorization");
 		if(headerValue != null && headerValue.startsWith("Bearer")) {
 			accessToken = headerValue.substring(7);
 			log.info(accessToken);
+		}
+		
+		// 6.5
+		// 쿼리스트링으로 전달되는 AccessToken 얻기
+		// <img src="/board/battach/1?accessToken=xxx" ... > 여기서 xxx값을 얻으려면?
+		if(accessToken == null) {
+			if(request.getParameter("accessToken") != null) {  // getParameter() 메서드의 활용 방법..
+				accessToken = request.getParameter("accessToken");
+			}
 		}
 		
 		// accessToken이 null일 경우에는 로그인하지 않았기 때문에 user의 id를 얻을 수 없다.

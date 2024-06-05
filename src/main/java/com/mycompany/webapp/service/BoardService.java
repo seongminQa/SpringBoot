@@ -25,7 +25,13 @@ public class BoardService {
    }
    
    public Board getBoard(int bno) {
+	  // hitcount 올려주기
+	   boardsDao.updateBhitcount(bno);
       return boardsDao.selectByBno(bno);
+   }
+   
+   public void updateBhitcount(int bno) {
+	   boardsDao.updateBhitcount(bno);
    }
 
    public int update(Board board) {
